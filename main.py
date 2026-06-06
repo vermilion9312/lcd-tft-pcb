@@ -6,9 +6,9 @@ from skidl import *
 # 설계 기준:
 # - 고정 부품: DWIN LN80480T070IA9098 7인치 RGB LCD, YF-07002 4선 감압식 터치.
 # - HMI: STM32 + TouchGFX, 외부 SDRAM 프레임버퍼, QSPI flash 리소스 저장.
-# - 모션: Autonics MD5-HF14 드라이브 4대. 각 축은 CW/CCW/HOLD_OFF/DIV_SEL 출력과 ZERO_OUT 입력.
+# - 모션: Autonics MD5-HF14 드라이브 4대. 각 축은 CW/CCW 출력만 PCB에서 구동한다.
 # - 입력: 24V NPN 센서 8점. 각 입력은 포토커플러로 3.3V MCU 영역과 절연 수신.
-# - 업로드/디버그: 온보드 STLINK-V3MODS USB 포트로 STM32H743 SWD flash/debug를 수행한다.
+# - 업로드/디버그: 온보드 STLINK-V3MODS USB 포트로 STM32H753 SWD flash/debug를 수행한다.
 # - 전원: 단일 외부 입력 VIN_24V_IN에서 5V/3.3V를 만든다. STLINK USB 5V는 보드 전원 입력으로 쓰지 않는다.
 #
 # 주의:
@@ -166,15 +166,15 @@ for regulator, sw, bst, output, inductor, cap_a, cap_b, boot in [
     boot["2"] += sw
 
 
-# === STM32H743IIT6 MCU 블록 ===
+# === STM32H753IIT6 MCU 블록 ===
 
-# U3: STM32H743IIT6
+# U3: STM32H753IIT6
 # 한국어 명칭: TouchGFX HMI용 STM32H7 MCU
 # 선택 이유: 7인치 800x480급 RGB LCD 구동에 필요한 LTDC, DMA2D, FMC SDRAM, QSPI, SWD debug/programming을 모두 갖는다.
 # 주요 사양: Arm Cortex-M7, 최대 480MHz 계열, 2MB Flash, 1MB RAM, LQFP-176(24x24), 1.62V~3.6V.
-# EasyEDA 검색어: STM32H743IIT6
-# LCSC Part#: C89597 (STMicroelectronics STM32H743IIT6, LQFP-176)
-# JLCPCB 재고: 확인됨. 2026-06-05 검색 기준 LCSC/JLCPCB 부품 페이지 확인.
+# EasyEDA 검색어: STM32H753IIT6
+# LCSC Part#: C146558 (STMicroelectronics STM32H753IIT6, LQFP-176, direct hand solder by user)
+# JLCPCB 재고: MCU는 사용자가 직접 조달/수납땜하는 조건. ST 공식 Active/LQFP176 및 LCSC C146558 확인.
 # 핀 정의: 아래 핀명은 기능 중심 표기다. 실제 LQFP-176 pin number와 alternate function은 CubeMX와 EasyEDA Pro 심볼에서 대조.
 MCU_PINS = [
     ("VDD", "VDD"), ("VSS", "VSS"), ("VDDA", "VDDA"), ("VSSA", "VSSA"), ("VREFP", "VREFP"),
@@ -184,14 +184,14 @@ MCU_PINS = [
     ("SWDIO", "PA13_SWDIO"), ("SWCLK", "PA14_SWCLK"), ("SWO", "PB3_SWO"),
     ("I2C1_SCL", "PB8_I2C1_SCL"), ("I2C1_SDA", "PB9_I2C1_SDA"), ("TOUCH_IRQ", "PI13_TOUCH_IRQ"),
     ("LCD_BL_PWM", "PA8_TIM1_CH1_LCD_BL_PWM"),
-    ("QSPI_CLK", "PB2_QUADSPI_CLK"), ("QSPI_NCS", "PB6_QUADSPI_BK1_NCS"),
+    ("QSPI_CLK", "PB2_QUADSPI_CLK"), ("QSPI_NCS", "PG6_QUADSPI_BK1_NCS"),
     ("QSPI_IO0", "PD11_QUADSPI_BK1_IO0"), ("QSPI_IO1", "PD12_QUADSPI_BK1_IO1"),
     ("QSPI_IO2", "PE2_QUADSPI_BK1_IO2"), ("QSPI_IO3", "PD13_QUADSPI_BK1_IO3"),
     ("LCD_CLK", "PI14_LTDC_CLK"), ("LCD_DE", "PK7_LTDC_DE"), ("LCD_HSYNC", "PI10_LTDC_HSYNC"), ("LCD_VSYNC", "PI9_LTDC_VSYNC"),
 ]
-MCU_PINS += [(f"LCD_R{i}", pin) for i, pin in enumerate(["PI15_LTDC_R0", "PJ0_LTDC_R1", "PJ1_LTDC_R2", "PJ2_LTDC_R3", "PJ3_LTDC_R4", "PJ4_LTDC_R5", "PJ5_LTDC_R6", "PJ6_LTDC_R7"])]
-MCU_PINS += [(f"LCD_G{i}", pin) for i, pin in enumerate(["PJ7_LTDC_G0", "PJ8_LTDC_G1", "PJ9_LTDC_G2", "PJ10_LTDC_G3", "PJ11_LTDC_G4", "PK0_LTDC_G5", "PK1_LTDC_G6", "PK2_LTDC_G7"])]
-MCU_PINS += [(f"LCD_B{i}", pin) for i, pin in enumerate(["PJ12_LTDC_B0", "PJ13_LTDC_B1", "PJ14_LTDC_B2", "PJ15_LTDC_B3", "PK3_LTDC_B4", "PI5_LTDC_B5", "PI6_LTDC_B6", "PI7_LTDC_B7"])]
+MCU_PINS += [(f"LCD_R{i}", pin) for i, pin in [(3, "PJ2_LTDC_R3"), (4, "PJ3_LTDC_R4"), (5, "PJ4_LTDC_R5"), (6, "PJ5_LTDC_R6"), (7, "PJ6_LTDC_R7")]]
+MCU_PINS += [(f"LCD_G{i}", pin) for i, pin in [(2, "PJ9_LTDC_G2"), (3, "PJ10_LTDC_G3"), (4, "PJ11_LTDC_G4"), (5, "PK0_LTDC_G5"), (6, "PK1_LTDC_G6"), (7, "PK2_LTDC_G7")]]
+MCU_PINS += [(f"LCD_B{i}", pin) for i, pin in [(3, "PJ15_LTDC_B3"), (4, "PK3_LTDC_B4"), (5, "PI5_LTDC_B5"), (6, "PI6_LTDC_B6"), (7, "PI7_LTDC_B7")]]
 MCU_PINS += [(f"FMC_D{i}", pin) for i, pin in enumerate(["PD14_FMC_D0", "PD15_FMC_D1", "PD0_FMC_D2", "PD1_FMC_D3", "PE7_FMC_D4", "PE8_FMC_D5", "PE9_FMC_D6", "PE10_FMC_D7", "PE11_FMC_D8", "PE12_FMC_D9", "PE13_FMC_D10", "PE14_FMC_D11", "PE15_FMC_D12", "PD8_FMC_D13", "PD9_FMC_D14", "PD10_FMC_D15"])]
 MCU_PINS += [(f"FMC_A{i}", pin) for i, pin in enumerate(["PF0_FMC_A0", "PF1_FMC_A1", "PF2_FMC_A2", "PF3_FMC_A3", "PF4_FMC_A4", "PF5_FMC_A5", "PF12_FMC_A6", "PF13_FMC_A7", "PF14_FMC_A8", "PF15_FMC_A9", "PG0_FMC_A10", "PG1_FMC_A11", "PG2_FMC_A12"])]
 MCU_PINS += [
@@ -205,19 +205,17 @@ for axis in range(1, 5):
     MCU_PINS += [
         (f"MD5_AXIS{axis}_CW", f"MD5_AXIS{axis}_CW_GPIO"),
         (f"MD5_AXIS{axis}_CCW", f"MD5_AXIS{axis}_CCW_GPIO"),
-        (f"MD5_AXIS{axis}_HOLD_OFF", f"MD5_AXIS{axis}_HOLD_OFF_GPIO"),
-        (f"MD5_AXIS{axis}_DIV_SEL", f"MD5_AXIS{axis}_DIV_SEL_GPIO"),
-        (f"MD5_AXIS{axis}_ZERO_OUT", f"MD5_AXIS{axis}_ZERO_OUT_GPIO"),
     ]
 for channel in range(1, 9):
     MCU_PINS += [(f"SENSOR_IN{channel}_MCU", f"SENSOR_IN{channel}_MCU_GPIO")]
-U3 = Part(name="STM32H743IIT6", dest=TEMPLATE, tool=SKIDL, ref_prefix="U", footprint="EasyEDA:STM32H743IIT6", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in MCU_PINS])()
+MCU_PINS += [("BUZZER_EN", "BUZZER_EN_GPIO")]
+U3 = Part(name="STM32H753IIT6", dest=TEMPLATE, tool=SKIDL, ref_prefix="U", footprint="EasyEDA:STM32H753IIT6", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in MCU_PINS])()
 
 MD5_AXIS_SIGNAL_NAMES = [
-    "MD5_AXIS1_CW", "MD5_AXIS1_CCW", "MD5_AXIS1_HOLD_OFF", "MD5_AXIS1_DIV_SEL", "MD5_AXIS1_ZERO_OUT",
-    "MD5_AXIS2_CW", "MD5_AXIS2_CCW", "MD5_AXIS2_HOLD_OFF", "MD5_AXIS2_DIV_SEL", "MD5_AXIS2_ZERO_OUT",
-    "MD5_AXIS3_CW", "MD5_AXIS3_CCW", "MD5_AXIS3_HOLD_OFF", "MD5_AXIS3_DIV_SEL", "MD5_AXIS3_ZERO_OUT",
-    "MD5_AXIS4_CW", "MD5_AXIS4_CCW", "MD5_AXIS4_HOLD_OFF", "MD5_AXIS4_DIV_SEL", "MD5_AXIS4_ZERO_OUT",
+    "MD5_AXIS1_CW", "MD5_AXIS1_CCW",
+    "MD5_AXIS2_CW", "MD5_AXIS2_CCW",
+    "MD5_AXIS3_CW", "MD5_AXIS3_CCW",
+    "MD5_AXIS4_CW", "MD5_AXIS4_CCW",
 ]
 MD5_AXIS_PORT_NAMES = [
     "MD5_HF14_AXIS1_SIGNAL_5267_6P",
@@ -246,6 +244,7 @@ I2C1_SCL = Net("I2C1_SCL")
 I2C1_SDA = Net("I2C1_SDA")
 TOUCH_IRQ = Net("TOUCH_IRQ")
 LCD_BL_PWM = Net("LCD_BL_PWM")
+BUZZER_EN = Net("BUZZER_EN")
 
 for pin_name in ("VDD", "VDDA", "VREFP"):
     U3[pin_name] += VDD_3V3
@@ -265,6 +264,7 @@ U3["I2C1_SCL"] += I2C1_SCL
 U3["I2C1_SDA"] += I2C1_SDA
 U3["TOUCH_IRQ"] += TOUCH_IRQ
 U3["LCD_BL_PWM"] += LCD_BL_PWM
+U3["BUZZER_EN"] += BUZZER_EN
 
 
 # === STM32H7 리셋/부트/클럭 블록 ===
@@ -402,7 +402,7 @@ U5["GND"] += GND
 
 # J2: LCD 50핀 FPC 커넥터
 # 한국어 명칭: DWIN LN80480T070IA9098용 50핀 0.5mm FPC 커넥터
-# 선택 이유: 고정 LCD 패널의 RGB_24bit 50PIN_0.5mm 인터페이스에 맞춘다.
+# 선택 이유: 고정 LCD 패널의 50PIN_0.5mm 인터페이스에 맞추되 MCU 핀 여유를 위해 LCD RGB565로 구동한다.
 # 주요 사양: 50P, 0.5mm pitch, bottom contact, right angle, 400mA/pin, 50V.
 # EasyEDA 검색어: AFC07-S50FCC-00
 # LCSC Part#: C11063 (JUSHUO AFC07-S50FCC-00, 50P 0.5mm FPC bottom contact connector)
@@ -417,13 +417,14 @@ J2 = Part(name="DWIN_LN80480T070IA9098_LCD_50P_FPC", dest=TEMPLATE, tool=SKIDL, 
 LCD_NETS = {}
 for name in ["LCD_CLK", "LCD_DE", "LCD_HSYNC", "LCD_VSYNC", "LCD_RESET", "LCD_MODE", "LCD_LR", "LCD_UD", "LCD_VCOM", "LCD_VGH", "LCD_VGL", "LCD_AVDD", "BL_LED_A", "BL_LED_K"]:
     LCD_NETS[name] = Net(name)
-for color in ("R", "G", "B"):
-    for idx in range(8):
+for color, bits in {"R": range(3, 8), "G": range(2, 8), "B": range(3, 8)}.items():
+    for idx in bits:
         LCD_NETS[f"LCD_{color}{idx}"] = Net(f"LCD_{color}{idx}")
+LCD_UNUSED_RGB_LSB = Net("LCD_UNUSED_RGB_LSB")
 for name in ("LCD_CLK", "LCD_DE", "LCD_HSYNC", "LCD_VSYNC"):
     U3[name] += LCD_NETS[name]
-for color in ("R", "G", "B"):
-    for idx in range(8):
+for color, bits in {"R": range(3, 8), "G": range(2, 8), "B": range(3, 8)}.items():
+    for idx in bits:
         U3[f"LCD_{color}{idx}"] += LCD_NETS[f"LCD_{color}{idx}"]
 
 # U6: LCD bias/backlight power interface
@@ -469,11 +470,12 @@ J2["9"] += LCD_NETS["LCD_DE"]
 J2["10"] += LCD_NETS["LCD_VSYNC"]
 J2["11"] += LCD_NETS["LCD_HSYNC"]
 for offset, bit in enumerate(range(7, -1, -1), start=12):
-    J2[str(offset)] += LCD_NETS[f"LCD_B{bit}"]  # 0.25mm, B7..B0
+    J2[str(offset)] += LCD_NETS[f"LCD_B{bit}"] if bit >= 3 else LCD_UNUSED_RGB_LSB  # 0.25mm, RGB565 B7..B3
 for offset, bit in enumerate(range(7, -1, -1), start=20):
-    J2[str(offset)] += LCD_NETS[f"LCD_G{bit}"]  # 0.25mm, G7..G0
+    J2[str(offset)] += LCD_NETS[f"LCD_G{bit}"] if bit >= 2 else LCD_UNUSED_RGB_LSB  # 0.25mm, RGB565 G7..G2
 for offset, bit in enumerate(range(7, -1, -1), start=28):
-    J2[str(offset)] += LCD_NETS[f"LCD_R{bit}"]  # 0.25mm, R7..R0
+    J2[str(offset)] += LCD_NETS[f"LCD_R{bit}"] if bit >= 3 else LCD_UNUSED_RGB_LSB  # 0.25mm, RGB565 R7..R3
+LCD_UNUSED_RGB_LSB += GND
 J2["36"] += GND
 J2["37"] += LCD_NETS["LCD_CLK"]
 J2["38"] += GND
@@ -546,7 +548,7 @@ R9["2"] += I2C1_SDA
 # EasyEDA 검색어: STLINK-V3MODS
 # LCSC Part#: C2680635 (STMicroelectronics STLINK-V3MODS, embedded ST-LINK V3 SWD programmer/debugger module)
 # JLCPCB 재고: 확인됨. 2026-06-05 검색 기준 JLCPCB 재고는 소량이므로 양산 전 재고 재확인 필요.
-# 핀 정의: VTREF=VDD_3V3 target sense, GND=GND, SWDIO/SWCLK/SWO/NRST=STM32H743 SWD, VCP_TX/VCP_RX=선택 UART.
+# 핀 정의: VTREF=VDD_3V3 target sense, GND=GND, SWDIO/SWCLK/SWO/NRST=STM32H753 SWD, VCP_TX/VCP_RX=선택 UART.
 # 주의: STLINK-V3MODS의 USB 5V 출력은 보드 전원 입력으로 쓰지 않는다. 보드는 VIN_24V_IN 단일 입력으로만 동작한다.
 U_STLINK = Part(
     name="STLINK_V3MODS_ONBOARD_PROGRAMMER",
@@ -581,7 +583,7 @@ U_STLINK["USB_5V_OUT"] += STLINK_USB_5V_OUT
 
 # U8/U9: TBD62783AFWG source driver arrays
 # 한국어 명칭: MD5-HF14 제어 입력용 8채널 source driver
-# 선택 이유: MD5-HF14 회로도는 CW/CCW/HOLD_OFF/DIV_SEL 입력을 +5V로 인가하는 방식이므로 source driver로 구동한다.
+# 선택 이유: MD5-HF14 회로도는 CW/CCW 입력을 +5V로 인가하는 방식이므로 source driver로 구동한다.
 # 주요 사양: 8채널 DMOS source transistor array, 50V, 500mA/ch급, SOP-18.
 # EasyEDA 검색어: TBD62783AFWG
 # LCSC Part#: C146353 (Toshiba TBD62783AFWG,EL, 8-channel source type DMOS transistor array, SOP-18)
@@ -591,54 +593,39 @@ SOURCE_DRIVER_PINS = [("VCC", "VCC"), ("GND", "GND")]
 SOURCE_DRIVER_PINS += [(f"IN{i}", f"IN{i}") for i in range(1, 9)]
 SOURCE_DRIVER_PINS += [(f"OUT{i}", f"OUT{i}") for i in range(1, 9)]
 U8 = Part(name="TBD62783AFWG_MD5_SOURCE_OUTPUTS_A", dest=TEMPLATE, tool=SKIDL, ref_prefix="U", footprint="EasyEDA:TBD62783AFWG_MD5_SOURCE_OUTPUTS_A", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in SOURCE_DRIVER_PINS])()
-U9 = Part(name="TBD62783AFWG_MD5_SOURCE_OUTPUTS_B", dest=TEMPLATE, tool=SKIDL, ref_prefix="U", footprint="EasyEDA:TBD62783AFWG_MD5_SOURCE_OUTPUTS_B", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in SOURCE_DRIVER_PINS])()
 U8["VCC"] += VCTRL_5V
 U8["GND"] += GND
-U9["VCC"] += VCTRL_5V
-U9["GND"] += GND
 
 MD5_OUTPUT_NETS = {}
 MD5_SOURCE_NETS = {}
 output_index = 1
 for axis in range(1, 5):
-    for signal in ("CW", "CCW", "HOLD_OFF", "DIV_SEL"):
+    for signal in ("CW", "CCW"):
         mcu_net = Net(f"MD5_AXIS{axis}_{signal}")
         source_net = Net(f"MD5_AXIS{axis}_{signal}_SRC")
         MD5_OUTPUT_NETS[(axis, signal)] = mcu_net
         MD5_SOURCE_NETS[(axis, signal)] = source_net
         U3[f"MD5_AXIS{axis}_{signal}"] += mcu_net
-        driver = U8 if output_index <= 8 else U9
-        driver_channel = output_index if output_index <= 8 else output_index - 8
-        driver[f"IN{driver_channel}"] += mcu_net
-        driver[f"OUT{driver_channel}"] += source_net
+        U8[f"IN{output_index}"] += mcu_net
+        U8[f"OUT{output_index}"] += source_net
         output_index += 1
 
 # J5~J8: MD5-HF14 axis control ports
 # 한국어 명칭: Autonics MD5-HF14 제어 신호 포트
 # 선택 이유: MD5-HF14의 Signal 1~10 중 GND 리턴(2/4/6/8/10)은 공통이므로 축별 하네스는 6선으로 줄인다.
-# 주요 사양: CW/CCW/HOLD_OFF/DIV_SEL 입력 4선, ZERO_OUT 출력 1선, 공통 GND 1선. 입력 전류는 CW/CCW 약 7.5~14mA, HOLD_OFF/DIV_SEL 약 10~16mA 계열.
+# 주요 사양: CW/CCW 입력 2선, 공통 GND 1선. 입력 전류는 CW/CCW 약 7.5~14mA 계열.
 # EasyEDA 검색어: Molex 22035065 5267 6P
 # LCSC/JLCPCB Part#: C185191 (Molex 22035065, Mini-SPOX/5267 계열 1x6P 2.5mm wire-to-board header, 3A 250V, through-hole)
 # JLCPCB 재고: 확인됨(2026-06-05 기준). 5267 mating housing/terminal은 하네스 BOM에서 별도 확정.
-# 핀 정의: Pin1=CW, Pin2=CCW, Pin3=HOLD_OFF, Pin4=DIV_SEL, Pin5=ZERO_OUT, Pin6=GND_COMMON.
-# MD5-HF14 실제 단자대 연결: J Pin1->MD5 Signal1(CW), Pin2->Signal3(CCW), Pin3->Signal5(HOLD_OFF), Pin4->Signal7(DIV_SEL), Pin5->Signal9(ZERO_OUT), Pin6->Signal2/4/6/8/10 공통 GND.
+# 핀 정의: Pin1=CW, Pin2=CCW, Pin3=NC, Pin4=NC, Pin5=NC, Pin6=GND_COMMON.
+# MD5-HF14 실제 단자대 연결: J Pin1->MD5 Signal1(CW), Pin2->Signal3(CCW), Pin6->Signal2/4/6/8/10 공통 GND. Pin3~5는 PCB에서 미사용.
 MD5_PORTS = {}
-MD5_ZERO_MCU_NETS = {}
 for axis in range(1, 5):
     port = Part(name=f"MD5_HF14_AXIS{axis}_SIGNAL_5267_6P", dest=TEMPLATE, tool=SKIDL, ref_prefix="J", footprint=f"EasyEDA:MD5_HF14_AXIS{axis}_SIGNAL_5267_6P", pins=[Pin(num=str(idx), name=str(idx)) for idx in range(1, 6 + 1)])()
     MD5_PORTS[axis] = port
     port["1"] += MD5_SOURCE_NETS[(axis, "CW")]
     port["2"] += MD5_SOURCE_NETS[(axis, "CCW")]
-    port["3"] += MD5_SOURCE_NETS[(axis, "HOLD_OFF")]
-    port["4"] += MD5_SOURCE_NETS[(axis, "DIV_SEL")]
-    zero_mcu = Net(f"MD5_AXIS{axis}_ZERO_OUT")
-    MD5_ZERO_MCU_NETS[axis] = zero_mcu
-    port["5"] += zero_mcu
     port["6"] += GND
-    U3[f"MD5_AXIS{axis}_ZERO_OUT"] += zero_mcu
-    zero_pullup = Part(name=f"MD5_AXIS{axis}_ZERO_OUT_PULLUP_2K", dest=TEMPLATE, tool=SKIDL, ref_prefix="R", footprint=f"EasyEDA:MD5_AXIS{axis}_ZERO_OUT_PULLUP_2K", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in [("1", "1"), ("2", "2")]])()
-    zero_pullup["1"] += VDD_3V3
-    zero_pullup["2"] += zero_mcu
 
 
 # === 24V NPN 센서 입력 8점 블록 ===
@@ -685,6 +672,48 @@ for channel in range(1, 9):
     pull["2"] += sensor_mcu
 
 
+# === Buzzer alert block ===
+
+# BZ1: 5V active buzzer
+# 한국어 명칭: 알림용 5V 능동 부저
+# 선택 이유: MCU PWM 음계가 필요 없는 단순 알림음을 1개 GPIO로 낸다.
+# 주요 사양: 5V active buzzer, 2.4kHz, 30mA, 88dB, SMD 12.8x12.8mm.
+# EasyEDA 검색어: KTG1205CL
+# LCSC/JLCPCB Part#: C7496511 (KINGSTATE KTG1205CL, 5V Active Buzzer, SMD 12.8x12.8mm)
+# JLCPCB 재고: 확인됨(소량). 부저류 재고는 주문 직전 JLCPCB Assembly 화면에서 재확인.
+# 핀 정의: Pin1=+(VCTRL_5V), Pin2=-(MOSFET drain 쪽). 실제 EasyEDA 심볼/풋프린트 극성 마킹 대조.
+BZ1 = Part(name="BUZZER_ACTIVE_5V_KTG1205CL", dest=TEMPLATE, tool=SKIDL, ref_prefix="BZ", footprint="EasyEDA:BUZZER_ACTIVE_5V_KTG1205CL", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in [("1", "+"), ("2", "-")]])()
+
+# Q1: buzzer low-side switch
+# 한국어 명칭: 부저 로우사이드 N-MOSFET
+# 선택 이유: 3.3V MCU GPIO가 부저 전류를 직접 구동하지 않게 한다.
+# 주요 사양: 2N7002, N-channel, 60V, 115mA, SOT-23.
+# EasyEDA 검색어: 2N7002
+# LCSC/JLCPCB Part#: C8545 (JSCJ 2N7002, N-channel MOSFET, SOT-23)
+# JLCPCB 재고: 확인됨.
+# 핀 정의: G=BUZZER_GATE, D=부저 -, S=GND. 2N7002 SOT-23 핀 번호는 EasyEDA Pro에서 실제 심볼과 대조.
+Q1 = Part(name="BUZZER_LOW_SIDE_2N7002", dest=TEMPLATE, tool=SKIDL, ref_prefix="Q", footprint="EasyEDA:BUZZER_LOW_SIDE_2N7002", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in [("G", "G"), ("D", "D"), ("S", "S")]])()
+
+# R10/R11: buzzer gate resistors
+# 한국어 명칭: 부저 MOSFET 게이트 직렬/풀다운 저항
+# 선택 이유: MCU 리셋 중 부저 오동작을 막고 게이트 충전 전류를 완만하게 한다.
+# 주요 사양: R10=1k 0603, R11=100k 0603.
+# EasyEDA 검색어: 0603WAF1001T5E, 0603WAF1003T5E
+# LCSC/JLCPCB Part#: C21190 (1k 1% 0603), C25803 (100k 1% 0603)
+# JLCPCB 재고: 확인됨. 무극성.
+BUZZER_GATE = Net("BUZZER_GATE")
+R10 = Part(name="BUZZER_GATE_SERIES_1K", dest=TEMPLATE, tool=SKIDL, ref_prefix="R", footprint="EasyEDA:BUZZER_GATE_SERIES_1K", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in [("1", "1"), ("2", "2")]])()
+R11 = Part(name="BUZZER_GATE_PULLDOWN_100K", dest=TEMPLATE, tool=SKIDL, ref_prefix="R", footprint="EasyEDA:BUZZER_GATE_PULLDOWN_100K", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in [("1", "1"), ("2", "2")]])()
+BZ1["1"] += VCTRL_5V       # 0.50mm
+BZ1["2"] += Q1["D"]        # 0.50mm
+Q1["S"] += GND             # 0.50mm
+Q1["G"] += BUZZER_GATE     # 0.25mm
+R10["1"] += BUZZER_EN      # 0.25mm
+R10["2"] += BUZZER_GATE    # 0.25mm
+R11["1"] += BUZZER_GATE    # 0.25mm
+R11["2"] += GND            # 0.25mm
+
+
 # === 디커플링/테스트포인트 블록 ===
 
 # C11/C12/C13/C14: 대표 디커플링
@@ -693,7 +722,7 @@ for channel in range(1, 9):
 # 주요 사양: 100nF 50V X7R 0603, Samsung MLCC.
 # EasyEDA 검색어: CL10B104KB8NNNC
 # LCSC Part#: C1591 (Samsung CL10B104KB8NNNC, 100nF 50V X7R 0603 MLCC, Brand:SAMSUNG(三星))
-# JLCPCB 재고: 확인됨. 실제 PCB에서는 STM32H743 전원 핀별로 충분한 개수를 배치.
+# JLCPCB 재고: 확인됨. 실제 PCB에서는 STM32H753 전원 핀별로 충분한 개수를 배치.
 # 핀 정의: 무극성. Pin1=VDD_3V3, Pin2=GND.
 for name in ("MCU_DECOUPLING_100NF_ARRAY", "SDRAM_DECOUPLING_100NF_ARRAY", "QSPI_DECOUPLING_100NF", "LCD_TOUCH_DECOUPLING_100NF_ARRAY"):
     cap = Part(name=name, dest=TEMPLATE, tool=SKIDL, ref_prefix="C", footprint=f"EasyEDA:{name}", pins=[Pin(num=str(num), name=str(pin_name)) for num, pin_name in [("1", "1"), ("2", "2")]])()
@@ -717,15 +746,15 @@ for tp_name, net in [
 
 # TouchGFX 데이터 흐름:
 # STLINK-V3MODS USB로 STM32 내부 flash에 펌웨어 업로드/디버그 -> W25Q128JVSIQ QSPI flash에 이미지/폰트/리소스 저장
-# -> STM32H743 QUADSPI memory-mapped read -> W9825G6JH SDRAM framebuffer
-# -> LTDC RGB24 -> LN80480T070IA9098 50핀 FPC 출력.
+# -> STM32H753 QUADSPI memory-mapped read -> W9825G6JH SDRAM framebuffer
+# -> LTDC LCD RGB565 -> LN80480T070IA9098 50핀 FPC 출력.
 #
 # MD5-HF14 제어:
-# STM32 GPIO -> TBD62783AFWG source output -> MD5-HF14 CW/CCW/HOLD_OFF/DIV_SEL 입력.
+# STM32 GPIO -> TBD62783AFWG source output -> MD5-HF14 CW/CCW 입력.
 # 드라이브 전원 100~220VAC와 모터 배선은 이 PCB에 들어오지 않는다.
 #
 # USB 업로드:
-# STLINK-V3MODS의 USB를 PC에 연결하면 STM32CubeProgrammer/IDE에서 SWD로 STM32H743 내부 flash를 쓴다.
+# STLINK-V3MODS의 USB를 PC에 연결하면 STM32CubeProgrammer/IDE에서 SWD로 STM32H753 내부 flash를 쓴다.
 # BOOT0 조작 없이 업로드/디버그가 가능하며, STLINK USB 5V는 보드 전원 입력으로 사용하지 않는다.
 #
 # 레이아웃 주의:

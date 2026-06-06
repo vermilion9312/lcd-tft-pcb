@@ -12,7 +12,7 @@ def read_main():
 def test_fixed_hmi_parts_and_selected_mcu_are_present():
     text = read_main()
     required = [
-        "STM32H743IIT6",
+        "STM32H753IIT6",
         "DWIN_LN80480T070IA9098_LCD_50P_FPC",
         "YF07002_TOUCH_4P_FPC",
         "AR1020_I_SS_TOUCH_CONTROLLER",
@@ -30,9 +30,9 @@ def test_motion_and_sensor_interfaces_are_present():
     for axis in range(1, 5):
         assert f"MD5_AXIS{axis}_CW" in text
         assert f"MD5_AXIS{axis}_CCW" in text
-        assert f"MD5_AXIS{axis}_HOLD_OFF" in text
-        assert f"MD5_AXIS{axis}_DIV_SEL" in text
-        assert f"MD5_AXIS{axis}_ZERO_OUT" in text
+        assert f"MD5_AXIS{axis}_HOLD_OFF" not in text
+        assert f"MD5_AXIS{axis}_DIV_SEL" not in text
+        assert f"MD5_AXIS{axis}_ZERO_OUT" not in text
         assert f"MD5_HF14_AXIS{axis}_SIGNAL_5267_6P" in text
         assert f"MD5_AXIS{axis}_PULSE" not in text
         assert f"MD5_AXIS{axis}_DIR" not in text
@@ -45,11 +45,22 @@ def test_motion_and_sensor_interfaces_are_present():
     assert "NPN_SENSOR_24V_8CH_INPUT_5267_10P" in text
 
 
+def test_rgb565_lcd_and_buzzer_are_present():
+    text = read_main()
+    assert "LCD RGB565" in text
+    for color in ("R", "G", "B"):
+        assert f"LCD_{color}0" not in text
+        assert f"LCD_{color}1" not in text
+    assert "LCD_UNUSED_RGB_LSB" in text
+    assert "BUZZER_ACTIVE_5V_KTG1205CL" in text
+    assert "BUZZER_EN = Net(\"BUZZER_EN\")" in text
+
+
 def test_lcsc_annotations_use_verified_parts():
     text = read_main()
     expected_parts = {
-        "C89597": ["STM32H743IIT6", "LQFP-176", "JLCPCB 재고"],
-        "C97521": ["W25Q128JVSIQ", "128Mbit", "SOIC-8-208mil", "JLCPCB 재고"],
+        "C146558": ["STM32H753IIT6", "LQFP-176", "direct hand solder"],
+        "C97521": ["W25Q128JVSIQ", "128Mbit", "SOIC-8-208mil"],
         "C20512714": ["W9825G6JH", "256Mbit", "TSOP-II-54"],
         "C2071056": ["AP63205WU-7", "5V", "2A"],
         "C780769": ["AP63203WU-7", "3.3V", "2A"],
@@ -61,6 +72,8 @@ def test_lcsc_annotations_use_verified_parts():
         "C146353": ["TBD62783AFWG", "8-channel", "source"],
         "C53325659": ["FG-5557-02A", "2P", "4.2mm"],
         "C185191": ["Molex", "22035065", "1x6P", "5267"],
+        "C7496511": ["KTG1205CL", "5V", "Active Buzzer"],
+        "C8545": ["2N7002", "N-channel", "SOT-23"],
     }
     for code, fragments in expected_parts.items():
         assert code in text
@@ -90,12 +103,13 @@ def test_power_and_architecture_constraints():
 def test_forbidden_placeholders_are_not_left_in_design():
     text = read_main()
     forbidden = [
-        "미" + "확정",
+        "미확정",
         "PLACE" + "HOLDER",
         "C50" + "975",
         "C720" + "477",
         "C614" + "2744",
         "C139" + "488",
+        "C89597",
     ]
     for item in forbidden:
         assert item not in text
